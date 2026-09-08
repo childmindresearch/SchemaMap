@@ -1,0 +1,78 @@
+# =====================================================================
+# Extraction Workflow & Aggregation Configuration File
+# Centralized settings for dynamic text extraction & data aggregation
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# Input Data Settings
+# ---------------------------------------------------------------------
+input:
+  # Directory path or file path (.txt / .parquet / .pq) to scan
+  path: "inputs"
+  # Format of input data: "txt" or "parquet"
+  format: "txt"
+  # Column in Parquet containing document/record identifier (if format is parquet)
+  id_column: "identifier"
+  # Column in Parquet containing raw document text (if format is parquet)
+  text_column: "anonymized"
+
+# ---------------------------------------------------------------------
+# Extraction Schema Settings
+# ---------------------------------------------------------------------
+schema:
+  # Path to the Python file (.py) defining Pydantic extraction schema(s)
+  file: "schemas/test_schemas/root_container_schema_example.py"
+  # Name of a specific schema class within schema file (null for all / auto-detect)
+  class_name: null
+  # Target a single root container model (Summary/Report) for extraction
+  use_root_schema: true
+
+# ---------------------------------------------------------------------
+# LLM Model & Server Settings
+# ---------------------------------------------------------------------
+model:
+  # Ollama model identifier
+  name: "qwen2.5:7b"
+  # Ollama API base URL
+  url: "http://localhost:11434/v1"
+  # Maximum concurrent asynchronous LLM requests
+  num_async_calls: 4
+
+# ---------------------------------------------------------------------
+# Text Chunking Settings
+# ---------------------------------------------------------------------
+chunking:
+  # Target word count per chunk (0 to disable chunking)
+  size: 1800
+  # Number of overlapping words between consecutive chunks
+  overlap: 30
+
+# ---------------------------------------------------------------------
+# Execution & Output Settings
+# ---------------------------------------------------------------------
+execution:
+  # Output directory for extracted JSON files
+  output_dir: "outputs"
+  # Skip records that already have complete final output JSON files
+  resume: true
+  # Run synchronously instead of asynchronously
+  sync_mode: false
+  # Execution log file path
+  log_file: "extraction_workflow.log"
+
+# ---------------------------------------------------------------------
+# Data Aggregation Settings (used by aggregate_outputs.py)
+# ---------------------------------------------------------------------
+aggregation:
+  # Directory containing extracted JSON outputs to aggregate (defaults to execution.output_dir if null)
+  input_dir: null
+  # Directory where aggregated tables (CSV / SQLite) will be saved
+  output_dir: "aggregated_tables"
+  # SQLite database filename
+  db_file: "aggregated_data.db"
+  # Enable CSV table generation
+  csv: true
+  # Enable SQLite database generation
+  sqlite: true
+  # Store in normalized multi-table relational format (true) or single denormalized table (false)
+  multi_table: true

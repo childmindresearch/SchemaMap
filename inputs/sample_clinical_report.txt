@@ -1,0 +1,17 @@
+Patient Identifier: PT-9042
+Age: 12 years old | Sex: Male
+Date of Evaluation: 2026-03-15
+
+Clinical Evaluation Notes:
+The patient was evaluated for academic difficulties and reported symptoms of inattention in the classroom.
+Diagnostic assessment confirms Attention Deficit Hyperactivity Disorder (ADHD), Combined Type, of moderate severity.
+Secondary assessment noted mild symptoms of generalized anxiety, though Panic Disorder was ruled out.
+
+Key Findings:
+- Reduced executive functioning and processing speed in timed visual tasks.
+- Frequent restlessness and difficulty maintaining sustained focus during reading comprehension.
+
+Recommended Interventions:
+- Individualized Education Program (IEP) with extended time on examinations (1.5x).
+- Cognitive Behavioral Therapy (CBT) focusing on anxiety management and organizational strategies.
+- Preferential seating near the front of the classroom to minimize distractions.
