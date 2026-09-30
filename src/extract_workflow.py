@@ -712,9 +712,17 @@ async def async_main():
         await http_client.aclose()
 
 
+import extract_multifile_workflow
+
+
+async def async_main():
+    await extract_multifile_workflow.async_main()
+
+
 def main():
     asyncio.run(async_main())
 
 
 if __name__ == "__main__":
     main()
+

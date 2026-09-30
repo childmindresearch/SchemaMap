@@ -90,14 +90,25 @@ def get_aggregation_config(config_filepath: str = "config.yaml") -> dict:
 
 def parse_filename(filename):
     """
-    Parses a filename using the '<source_id>_<schema_name>.json' convention.
+    Parses a filename using either the double-underscore convention:
+      '<source_id>__<module_name>__<schema_name>.json' or '<source_id>__<qualified_name>.json'
+    or the single-underscore fallback convention:
+      '<source_id>_<schema_name>.json'
     """
-    basename = os.path.splitext(filename)[0]
+    basename = os.path.splitext(os.path.basename(filename))[0]
+    if '__' in basename:
+        parts = basename.split('__')
+        if len(parts) >= 3:
+            source_id = parts[0]
+            schema_name = f"{parts[1]}_{parts[2]}"
+            return source_id, schema_name
+        elif len(parts) == 2:
+            return parts[0], parts[1]
     if '_' not in basename:
-        # Fallback if filename doesn't follow the convention
         return "unknown", basename
     source_id, schema_name = basename.rsplit('_', 1)
     return source_id, schema_name
+
 
 
 def process_json_data(data):

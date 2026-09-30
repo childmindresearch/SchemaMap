@@ -13,9 +13,12 @@ __pycache__/
 
 # Generated Pipeline Outputs & Log Files
 outputs/
+outputs*/
 aggregated_tables/
+aggregated_tables*/
 *.log
 nohup.out
+
 
 # Jupyter & Editor Checkpoints
 .ipynb_checkpoints/
