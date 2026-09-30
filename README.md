@@ -2,7 +2,7 @@
 
 A domain-agnostic, schema-driven framework designed to extract structured JSON data from unstructured clinical, medical, or general text documents using **`pydantic-ai`** and local Large Language Models (via **Ollama**).
 
-The framework dynamically loads Pydantic schemas at runtime (supporting both single `.py` files and multi-file schema directories with mixed types), applies **AST/DAG field-reflection** to isolate top-level root models, segments long documents using sliding-window word chunking, dispatches concurrent LLM extraction requests, consolidates chunk extractions using an in-memory **Map-Reduce merging engine**, and normalizes JSON outputs into relational **CSV tables and SQLite databases**.
+The framework dynamically loads Pydantic schemas at runtime (supporting both single `.py` files and multi-file schema directories with mixed types), applies **AST/DAG field-reflection** to isolate top-level root models, segments long documents using sliding-window word chunking, dispatches concurrent LLM extraction requests, consolidates chunk extractions using an in-memory **Field-Level Consolidation engine**, and normalizes JSON outputs into relational **CSV tables and SQLite databases**.
 
 ---
 
@@ -21,10 +21,10 @@ The framework dynamically loads Pydantic schemas at runtime (supporting both sin
    2. Text Segmentation & Word Chunking (Sliding Window)
                │
                ▼
-   3. Map Phase: Concurrent LLM Extractions (pydantic-ai + Ollama)
+   3. Chunk Extraction Pass: Concurrent LLM Extractions (pydantic-ai + Ollama)
                │
                ▼
-   4. Reduce Phase: Schema-Agnostic Instance Merger (src/schema_loader.py)
+   4. Consolidation Pass: Schema-Agnostic Instance Merger (src/schema_loader.py)
                │
                ▼
    5. Namespaced JSON Storage (outputs/<doc_id>/<doc_id>__<module>__<class>.json)
@@ -41,11 +41,11 @@ The framework dynamically loads Pydantic schemas at runtime (supporting both sin
 
 ## Key Features
 
-- **Multi-File & Mixed-Type Support (Default Workflow)**: Automatically process directories containing multiple `.py` schema files containing a mixture of root container models, standalone models, and embedded child component models.
+- **Multi-File & Mixed-Type Support (Default Workflow)**: Automatically process single `.py` files or directories containing multiple `.py` schema files with mixed model types (root container models, standalone models, and embedded child component models).
 - **AST / DAG Hierarchy Classification**: Uses type-hint reflection across `BaseModel.model_fields` to construct a Directed Acyclic Graph (DAG) of schema relationships. Automatically isolates top-level root models from embedded child models, reducing LLM API calls by **70%–85%**.
-- **Collision-Free Namespace Isolation**: Formats output filenames using a double-underscore convention (`<doc_id>__<module_name>__<class_name>.json`), preventing class name collisions when multiple `.py` files define identically named schemas (e.g., `GeneratedModule`).
+- **Collision-Free Namespace Isolation**: Formats output filenames using a double-underscore convention (`<doc_id>__<module_name>__<class_name>.json`), preventing class name collisions when multiple `.py` files define identically named schemas.
 - **Sliding-Window Word Chunking**: Segments large documents into custom word counts with overlapping boundaries to preserve context across splits.
-- **Schema-Agnostic Map-Reduce Engine**:
+- **Field-Level Model Consolidation Engine**:
   - **Lists**: Extended and deduplicated across chunk outputs.
   - **Long Text**: Concatenated with delimiters.
   - **Numbers**: Calculated averages (e.g., scores/ratings).
@@ -57,13 +57,13 @@ The framework dynamically loads Pydantic schemas at runtime (supporting both sin
 
 ## Multi-File Schema Processing & DAG Classification
 
-When processing complex schema folders (such as `schemas/test_schemas/multifile/V1` through `V4`), directories contain multiple `.py` files with mixed model types:
+When processing complex schema folders, directories contain multiple `.py` files with mixed model types:
 
 | Schema Category | Description | DAG Classifier Action |
 | :--- | :--- | :--- |
-| **Top-Level Root Models** | Master summary or container classes (e.g. `TreatmentHistory`, `DiagnosticAssessment`, `ClinicalSummary`). | **Selected for LLM Extraction** |
+| **Top-Level Root Models** | Master summary or container classes (e.g. `PatientIntakeSummary`, `DischargeSummaryReport`). | **Selected for LLM Extraction** |
 | **Standalone Entity Models** | Independent un-nested entity models (e.g. `AcademicAccommodation`). | **Selected for LLM Extraction** |
-| **Embedded Child Models** | Component models referenced as field types inside another model (e.g. `AnxietySymptom`, `MedicationStatus`). | **Automatically Suppressed** (extracted naturally inside top-level parent models) |
+| **Embedded Child Models** | Component models referenced as field types inside another model (e.g. `PatientInfo`, `ClinicalDiagnosis`). | **Automatically Suppressed** (extracted naturally inside top-level parent models) |
 
 ---
 
@@ -82,17 +82,15 @@ SchemaMap/
 │   └── test_schemas/
 │       ├── root_container_schema_example.py
 │       ├── multi_class_schema_example.py
-│       └── multifile/                 # Evaluation Multi-File Directories
-│           ├── V1/                    # 16 schema files (104 classes -> 25 top-level roots)
-│           ├── V2/                    # 14 schema files (95 classes -> 23 top-level roots)
-│           ├── V3/                    # 8 schema files (61 classes -> 16 top-level roots)
-│           └── V4/                    # 4 schema files (37 classes -> 6 top-level roots)
+│       └── multi_file_example/        # Example Multi-File Directory
+│           ├── 01_patient_intake_schema.py
+│           └── 02_discharge_summary_schema.py
 └── src/                               # Core Python engine modules
     ├── run_pipeline.py                # Main CLI pipeline wrapper
     ├── extract_multifile_workflow.py  # Default multi-file DAG extraction engine
     ├── extract_workflow.py            # Extraction workflow wrapper
     ├── multifile_schema_loader.py     # Cross-file namespace & DAG reflection classifier
-    ├── schema_loader.py               # Map-Reduce merging algorithm & chunking helper
+    ├── schema_loader.py               # Field-level model consolidation & chunking helper
     └── aggregate_outputs.py           # Relational table aggregator & exporter
 ```
 
@@ -131,7 +129,7 @@ input:
   format: "txt"
 
 schema:
-  file: "schemas/test_schemas/multifile/V1"
+  file: "schemas/test_schemas/root_container_schema_example.py"
 
 model:
   name: "qwen2.5:7b"
@@ -159,27 +157,24 @@ Run the full extraction and aggregation pipeline in a single command based on `c
 python3 run_pipeline.py
 ```
 
-### 3. Target Specific Directories (CLI Overrides)
-You can run targeted pipeline executions for specific schema directories and dedicated output locations:
+### 3. Target Specific Directories or Schemas (CLI Overrides)
+You can run targeted pipeline executions for specific schema files or directories:
 
 ```bash
-# Run V1 pipeline execution:
-python3 run_pipeline.py --schema-dir schemas/test_schemas/multifile/V1 --output-dir outputs/V1 --agg-dir aggregated_tables/V1
-
-# Run V4 pipeline execution:
-python3 run_pipeline.py --schema-dir schemas/test_schemas/multifile/V4 --output-dir outputs/V4 --agg-dir aggregated_tables/V4
+# Process a multi-file directory:
+python3 run_pipeline.py --schema-dir schemas/test_schemas/multi_file_example --output-dir outputs/multi_file_run --agg-dir aggregated_tables/multi_file_run
 ```
 
 ### 4. Run Components Independently (Optional)
 
 - **Extraction Phase Only**:
   ```bash
-  python3 src/extract_multifile_workflow.py --schema-dir schemas/test_schemas/multifile/V1
+  python3 src/extract_multifile_workflow.py --schema-dir schemas/test_schemas/multi_file_example
   ```
 
 - **Aggregation Phase Only**:
   ```bash
-  python3 src/aggregate_outputs.py --input-dir outputs/V1 --output-dir aggregated_tables/V1
+  python3 src/aggregate_outputs.py --input-dir outputs --output-dir aggregated_tables
   ```
 
 Outputs are saved in `aggregated_tables/`:

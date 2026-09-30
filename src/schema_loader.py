@@ -1,7 +1,7 @@
 """
 Schema Loader Module for dynamic structured text extraction.
 Supports loading Pydantic schemas dynamically from Python (.py) files.
-Also provides a generic Map-Reduce Pydantic model merging algorithm.
+Also provides a generic field-level Pydantic model consolidation algorithm.
 """
 
 import importlib.util

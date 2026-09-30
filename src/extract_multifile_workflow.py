@@ -9,7 +9,7 @@ Key Capabilities:
 1. Dynamically imports all .py schema files in a target directory into a global namespace.
 2. Applies DAG field-reflection to isolate top-level root models from embedded child models.
 3. Dispatches async extraction tasks for top-level schemas per text chunk.
-4. Performs field-level Map-Reduce model merging across chunk outputs.
+4. Performs field-level model consolidation across chunk outputs.
 5. Saves namespace-qualified JSON outputs ('<doc_id>__<module_name>__<class_name>.json')
    to prevent filename and table collisions.
 """
@@ -196,12 +196,12 @@ async def process_document_multifile(
             ]
             await asyncio.gather(*tasks)
 
-        # Reduce Phase per schema
+        # Instance Consolidation Pass per schema
         for meta in schemas_meta:
             chunk_outputs = schema_chunk_outputs[meta.qualified_name]
             try:
                 if not chunk_outputs:
-                    logger.warning(f"  [REDUCE SKIPPED] No outputs for '{meta.qualified_name}' in Doc '{doc_id}'.")
+                    logger.warning(f"  [CONSOLIDATION SKIPPED] No outputs for '{meta.qualified_name}' in Doc '{doc_id}'.")
                     continue
 
                 merged_output = schema_loader.merge_pydantic_instances(meta.schema_cls, chunk_outputs)
@@ -210,9 +210,9 @@ async def process_document_multifile(
                 out_filepath = os.path.join(doc_out_dir, out_filename)
                 with open(out_filepath, "w", encoding="utf-8") as out_f:
                     json.dump(merged_output.model_dump(mode="json"), out_f, indent=4)
-                logger.info(f"  [REDUCE SUCCESS] Doc: '{doc_id}' | Schema: '{meta.qualified_name}' -> {out_filepath}")
+                logger.info(f"  [CONSOLIDATION SUCCESS] Doc: '{doc_id}' | Schema: '{meta.qualified_name}' -> {out_filepath}")
             except Exception as e:
-                logger.error(f"  [REDUCE FAILED] Doc: '{doc_id}' | Schema: '{meta.qualified_name}' | Error: {e}")
+                logger.error(f"  [CONSOLIDATION FAILED] Doc: '{doc_id}' | Schema: '{meta.qualified_name}' | Error: {e}")
 
     except Exception as e:
         logger.error(f"Error processing Doc '{doc_id}': {e}")

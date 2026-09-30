@@ -6,7 +6,7 @@ using pydantic-ai and a local LLM via Ollama. It is completely domain-agnostic:
 1. Dynamically loads a Pydantic schema from an external Python file (.py).
 2. Supports extracting via a single root container model OR looping over all individual child schemas.
 3. Performs dynamic text chunking (word-based) with customizable size/overlap.
-4. Applies a schema-agnostic Map-Reduce merging algorithm.
+4. Applies a schema-agnostic field-level model consolidation algorithm.
 5. Executes synchronously or asynchronously.
 """
 
@@ -261,7 +261,7 @@ async def process_document_sequentially(
                     elapsed = time.perf_counter() - start_time
                     logger.error(f"  [API FAILED] Doc: '{doc_id}' | Chunk: {chunk_idx}/{len(chunks)} | Schema: '{schema_name}' | Elapsed: {elapsed:.2f}s | Error: {e}")
 
-        # Map Phase: Process each chunk across ALL schemas CONCURRENTLY (bounded by semaphore)
+        # Chunk Extraction Pass: Process each chunk across ALL schemas CONCURRENTLY (bounded by semaphore)
         for chunk_idx, chunk_text_data in enumerate(chunks, 1):
             logger.info(f"--- [Chunk {chunk_idx}/{len(chunks)} Started] Dispatching {len(schemas_to_run)} schema(s) for Doc '{doc_id}' ---")
             
@@ -271,13 +271,13 @@ async def process_document_sequentially(
             ]
             await asyncio.gather(*schema_tasks)
 
-        # Reduce Phase: Merge and save output for each schema in the report's dedicated folder
+        # Instance Consolidation Pass: Merge and save output for each schema in the report's dedicated folder
         for schema_cls in schemas_to_run:
             schema_name = schema_cls.__name__
             chunk_outputs = schema_chunk_outputs[schema_cls]
             try:
                 if not chunk_outputs:
-                    logger.warning(f"  [REDUCE SKIPPED] No successful extractions for Schema '{schema_name}' in Doc '{doc_id}'.")
+                    logger.warning(f"  [CONSOLIDATION SKIPPED] No successful extractions for Schema '{schema_name}' in Doc '{doc_id}'.")
                     continue
 
                 merged_output = schema_loader.merge_pydantic_instances(schema_cls, chunk_outputs)
@@ -287,9 +287,10 @@ async def process_document_sequentially(
                 out_filepath = os.path.join(doc_out_dir, out_filename)
                 with open(out_filepath, "w", encoding="utf-8") as out_f:
                     json.dump(merged_output.model_dump(mode="json"), out_f, indent=4)
-                logger.info(f"  [REDUCE SUCCESS] Doc: '{doc_id}' | Schema: '{schema_name}' | Saved final output: {out_filepath}")
+                logger.info(f"  [CONSOLIDATION SUCCESS] Doc: '{doc_id}' | Schema: '{schema_name}' | Saved final output: {out_filepath}")
             except Exception as e:
-                logger.error(f"  [REDUCE FAILED] Doc: '{doc_id}' | Schema: '{schema_name}' | Error: {e}")
+                logger.error(f"  [CONSOLIDATION FAILED] Doc: '{doc_id}' | Schema: '{schema_name}' | Error: {e}")
+
             
     except Exception as e:
         logger.error(f"Error processing Doc '{doc_id}' ({source_info}): {e}")
