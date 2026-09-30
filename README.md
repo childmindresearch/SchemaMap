@@ -41,7 +41,7 @@ The framework dynamically loads Pydantic schemas at runtime (supporting both sin
 
 ## Key Features
 
-- **Multi-File & Mixed-Type Support (Default Workflow)**: Automatically process single `.py` files or directories containing multiple `.py` schema files with mixed model types (root container models, standalone models, and embedded child component models).
+- **Multi-File & Mixed-Type Support**: Automatically process single `.py` files or directories containing multiple `.py` schema files with mixed model types (root container models, standalone models, and embedded child component models).
 - **AST / DAG Hierarchy Classification**: Uses type-hint reflection across `BaseModel.model_fields` to construct a Directed Acyclic Graph (DAG) of schema relationships. Automatically isolates top-level root models from embedded child models, reducing LLM API calls by **70%–85%**.
 - **Collision-Free Namespace Isolation**: Formats output filenames using a double-underscore convention (`<doc_id>__<module_name>__<class_name>.json`), preventing class name collisions when multiple `.py` files define identically named schemas.
 - **Sliding-Window Word Chunking**: Segments large documents into custom word counts with overlapping boundaries to preserve context across splits.
@@ -71,7 +71,7 @@ When processing complex schema folders, directories contain multiple `.py` files
 
 ```
 SchemaMap/
-├── run_pipeline.py                    # Unified end-to-end pipeline runner (Default workflow)
+├── run_pipeline.py                    # Unified end-to-end pipeline runner
 ├── config.yaml                        # Centralized workflow & aggregation configuration
 ├── requirements.txt                   # Project dependencies
 ├── README.md                          # Project documentation
@@ -79,16 +79,15 @@ SchemaMap/
 │   ├── sample_clinical_report.txt
 │   └── sample_contact.txt
 ├── schemas/                           # Python schema definitions (Pydantic models)
-│   └── test_schemas/
+│   └── test_schemas/                  # Unit test & example schemas
 │       ├── root_container_schema_example.py
 │       ├── multi_class_schema_example.py
 │       └── multi_file_example/        # Example Multi-File Directory
 │           ├── 01_patient_intake_schema.py
 │           └── 02_discharge_summary_schema.py
 └── src/                               # Core Python engine modules
-    ├── run_pipeline.py                # Main CLI pipeline wrapper
-    ├── extract_multifile_workflow.py  # Default multi-file DAG extraction engine
-    ├── extract_workflow.py            # Extraction workflow wrapper
+    ├── extract_workflow.py            # Unified single-file & multi-file DAG extraction engine
+    ├── extract_multifile_workflow.py  # Backward-compatibility wrapper for extract_workflow.py
     ├── multifile_schema_loader.py     # Cross-file namespace & DAG reflection classifier
     ├── schema_loader.py               # Field-level model consolidation & chunking helper
     └── aggregate_outputs.py           # Relational table aggregator & exporter
@@ -129,7 +128,8 @@ input:
   format: "txt"
 
 schema:
-  file: "schemas/test_schemas/root_container_schema_example.py"
+  file: "schemas/test_schemas/multi_file_example"
+  extract_mode: "top_level"
 
 model:
   name: "qwen2.5:7b"
@@ -161,15 +161,15 @@ python3 run_pipeline.py
 You can run targeted pipeline executions for specific schema files or directories:
 
 ```bash
-# Process a multi-file directory:
-python3 run_pipeline.py --schema-dir schemas/test_schemas/multi_file_example --output-dir outputs/multi_file_run --agg-dir aggregated_tables/multi_file_run
+# Process a multi-file directory or single schema file:
+python3 run_pipeline.py --schema-path schemas/test_schemas/multi_file_example --output-dir outputs/multi_file_run --agg-dir aggregated_tables/multi_file_run
 ```
 
 ### 4. Run Components Independently (Optional)
 
 - **Extraction Phase Only**:
   ```bash
-  python3 src/extract_multifile_workflow.py --schema-dir schemas/test_schemas/multi_file_example
+  python3 src/extract_workflow.py --schema-path schemas/test_schemas/multi_file_example
   ```
 
 - **Aggregation Phase Only**:

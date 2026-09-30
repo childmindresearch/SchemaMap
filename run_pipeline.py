@@ -19,7 +19,6 @@ if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
 import extract_workflow
-import extract_multifile_workflow
 import aggregate_outputs
 
 
@@ -34,10 +33,11 @@ def main():
         help="Path to YAML configuration file (default: config.yaml)."
     )
     parser.add_argument(
-        "--schema-dir",
+        "--schema-path", "--schema-dir", "--schema-file",
+        dest="schema_path",
         type=str,
         default=None,
-        help="Directory path to multi-file Pydantic schema files (overrides config.yaml)."
+        help="Path to Pydantic schema file (.py) or multi-file directory (overrides config.yaml)."
     )
     parser.add_argument(
         "--output-dir",
@@ -50,11 +50,6 @@ def main():
         type=str,
         default=None,
         help="Directory to save aggregated CSV and SQLite tables (overrides config.yaml)."
-    )
-    parser.add_argument(
-        "--multifile",
-        action="store_true",
-        help="Force multi-file workflow mode for schema directories."
     )
     parser.add_argument(
         "--skip-extraction",
@@ -73,44 +68,35 @@ def main():
     print("=====================================================================")
     print("🚀 Starting End-to-End Pipeline Execution")
     print(f"Config File: {args.config}")
-    if args.schema_dir:
-        print(f"Schema Directory: {args.schema_dir}")
+    if args.schema_path:
+        print(f"Schema Path: {args.schema_path}")
     if args.output_dir:
         print(f"Extraction Output Directory: {args.output_dir}")
     if args.agg_dir:
         print(f"Aggregation Directory: {args.agg_dir}")
     print("=====================================================================\n")
 
-    # Determine if schema file setting points to a directory (Multi-File workflow)
-    cfg = extract_workflow.load_config_file(args.config)
-    schema_path = args.schema_dir or cfg.get("schema", {}).get("file", "")
-    is_dir_schema = os.path.isdir(schema_path) if schema_path else False
-    use_multifile_wf = args.multifile or is_dir_schema
-
-
-    # 1. Step 1: Extraction Phase (Default Workflow)
+    # 1. Step 1: Structured Extraction Phase (DAG Multi-File / Single-File Engine)
     if not args.skip_extraction:
         print("---------------------------------------------------------------------")
-        print("Phase 1: Running Multi-File DAG-Classified Structured Extraction Workflow")
+        print("Phase 1: Running DAG-Classified Structured Extraction Workflow")
         print("---------------------------------------------------------------------")
         
         phase1_args = [sys.argv[0], "--config", args.config]
-        if args.schema_dir:
-            phase1_args.extend(["--schema-dir", args.schema_dir])
+        if args.schema_path:
+            phase1_args.extend(["--schema-path", args.schema_path])
         if args.output_dir:
             phase1_args.extend(["--output-dir", args.output_dir])
         sys.argv = phase1_args
 
         try:
-            asyncio.run(extract_multifile_workflow.async_main())
+            asyncio.run(extract_workflow.async_main())
         except Exception as e:
             print(f"❌ Error during extraction phase: {e}", file=sys.stderr)
             sys.exit(1)
         print("✅ Phase 1 Complete!\n")
     else:
         print("⏩ Phase 1 (Extraction) Skipped.\n")
-
-
 
     # 2. Step 2: Data Aggregation Phase
     if not args.skip_aggregation:
@@ -133,7 +119,6 @@ def main():
         print("✅ Phase 2 Complete!\n")
     else:
         print("⏩ Phase 2 (Aggregation) Skipped.\n")
-
 
     elapsed = time.perf_counter() - start_time
     print("=====================================================================")

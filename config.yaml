@@ -20,12 +20,15 @@ input:
 # Extraction Schema Settings
 # ---------------------------------------------------------------------
 schema:
-  # Path to the Python file (.py) defining Pydantic extraction schema(s)
-  file: "schemas/test_schemas/root_container_schema_example.py"
+  # Path to single Python schema file (.py) OR multi-file schema directory
+  file: "schemas/test_schemas/multi_file_example"
   # Name of a specific schema class within schema file (null for all / auto-detect)
   class_name: null
-  # Target a single root container model (Summary/Report) for extraction
-  use_root_schema: true
+  # DAG classification mode for multi-file directories: "top_level" | "all" | "child"
+  # - "top_level": Uses DAG reflection to extract only root container models (reduces LLM calls by 70-85%)
+  # - "all": Extracts all discovered Pydantic schemas (top-level and embedded child models)
+  # - "child": Extracts only embedded child component models
+  extract_mode: "top_level"
 
 # ---------------------------------------------------------------------
 # LLM Model & Server Settings
