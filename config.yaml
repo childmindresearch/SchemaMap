@@ -21,14 +21,19 @@ input:
 # ---------------------------------------------------------------------
 schema:
   # Path to single Python schema file (.py) OR multi-file schema directory
-  file: "schemas/test_schemas/multi_file_example"
+  file: "schemas/core_master"
+  # Optional path to domain mapping metadata file (.py) containing DOMAIN_EXTRACTION_MAP
+  domain_mapping_file: "schemas/core_domain_mapping.py"
   # Name of a specific schema class within schema file (null for all / auto-detect)
   class_name: null
-  # DAG classification mode for multi-file directories: "top_level" | "all" | "child"
-  # - "top_level": Uses DAG reflection to extract only root container models (reduces LLM calls by 70-85%)
-  # - "all": Extracts all discovered Pydantic schemas (top-level and embedded child models)
+  # Dynamic extraction mode for multi-file directories: "domain_grouped" | "top_level" | "all" | "child"
+  # - "domain_grouped": Synthesizes domain container models (List[Model]) per file (optimal efficiency & zero info loss)
+  # - "top_level": Uses DAG reflection to extract root container models
+  # - "all": Extracts all discovered Pydantic schemas individually
   # - "child": Extracts only embedded child component models
-  extract_mode: "top_level"
+  extract_mode: "domain_grouped"
+
+
 
 # ---------------------------------------------------------------------
 # LLM Model & Server Settings
@@ -45,8 +50,8 @@ model:
 # Text Chunking Settings
 # ---------------------------------------------------------------------
 chunking:
-  # Target word count per chunk (0 to disable chunking)
-  size: 1800
+  # Target word count per chunk (Recommended: 600-1000 for optimal prompt prefill & generation speed)
+  size: 800
   # Number of overlapping words between consecutive chunks
   overlap: 30
 
@@ -56,12 +61,15 @@ chunking:
 execution:
   # Output directory for extracted JSON files
   output_dir: "outputs"
+  # Directory to save the first LLM prompt payload per schema class for manual human review
+  prompt_payloads_dir: "prompt_payloads"
   # Skip records that already have complete final output JSON files
   resume: true
   # Run synchronously instead of asynchronously
   sync_mode: false
   # Execution log file path
   log_file: "extraction_workflow.log"
+
 
 # ---------------------------------------------------------------------
 # Data Aggregation Settings (used by aggregate_outputs.py)

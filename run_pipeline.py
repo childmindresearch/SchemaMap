@@ -40,10 +40,24 @@ def main():
         help="Path to Pydantic schema file (.py) or multi-file directory (overrides config.yaml)."
     )
     parser.add_argument(
+        "--domain-mapping-file", "--mapping-file",
+        dest="domain_mapping_file",
+        type=str,
+        default=None,
+        help="Path to domain mapping python file (.py) containing DOMAIN_EXTRACTION_MAP (overrides config.yaml)."
+    )
+    parser.add_argument(
         "--output-dir",
         type=str,
         default=None,
         help="Directory to save extracted JSON output files (overrides config.yaml)."
+    )
+    parser.add_argument(
+        "--prompt-payloads-dir", "--payloads-dir",
+        dest="prompt_payloads_dir",
+        type=str,
+        default=None,
+        help="Directory to save first LLM prompt payload per schema class (overrides config.yaml)."
     )
     parser.add_argument(
         "--agg-dir",
@@ -70,27 +84,31 @@ def main():
     print(f"Config File: {args.config}")
     if args.schema_path:
         print(f"Schema Path: {args.schema_path}")
+    if args.domain_mapping_file:
+        print(f"Domain Mapping File: {args.domain_mapping_file}")
     if args.output_dir:
         print(f"Extraction Output Directory: {args.output_dir}")
+    if args.prompt_payloads_dir:
+        print(f"Prompt Payloads Directory: {args.prompt_payloads_dir}")
     if args.agg_dir:
         print(f"Aggregation Directory: {args.agg_dir}")
     print("=====================================================================\n")
 
-    # 1. Step 1: Structured Extraction Phase (DAG Multi-File / Single-File Engine)
+    # Step 1: Structured Extraction Phase
     if not args.skip_extraction:
         print("---------------------------------------------------------------------")
-        print("Phase 1: Running DAG-Classified Structured Extraction Workflow")
+        print("Phase 1: Running Structured Extraction Workflow")
         print("---------------------------------------------------------------------")
-        
-        phase1_args = [sys.argv[0], "--config", args.config]
-        if args.schema_path:
-            phase1_args.extend(["--schema-path", args.schema_path])
-        if args.output_dir:
-            phase1_args.extend(["--output-dir", args.output_dir])
-        sys.argv = phase1_args
-
         try:
-            asyncio.run(extract_workflow.async_main())
+            asyncio.run(
+                extract_workflow.run_extraction(
+                    config_file=args.config,
+                    schema_path=args.schema_path,
+                    domain_mapping_file=args.domain_mapping_file,
+                    output_dir=args.output_dir,
+                    prompt_payloads_dir=args.prompt_payloads_dir
+                )
+            )
         except Exception as e:
             print(f"❌ Error during extraction phase: {e}", file=sys.stderr)
             sys.exit(1)
@@ -98,21 +116,17 @@ def main():
     else:
         print("⏩ Phase 1 (Extraction) Skipped.\n")
 
-    # 2. Step 2: Data Aggregation Phase
+    # Step 2: Data Aggregation Phase
     if not args.skip_aggregation:
         print("---------------------------------------------------------------------")
         print("Phase 2: Running Relational Table Data Aggregator")
         print("---------------------------------------------------------------------")
-        
-        phase2_args = [sys.argv[0], "--config", args.config]
-        if args.output_dir:
-            phase2_args.extend(["--input-dir", args.output_dir])
-        if args.agg_dir:
-            phase2_args.extend(["--output-dir", args.agg_dir])
-        sys.argv = phase2_args
-
         try:
-            aggregate_outputs.main()
+            aggregate_outputs.run_aggregation(
+                config_file=args.config,
+                input_dir=args.output_dir,
+                output_dir=args.agg_dir
+            )
         except Exception as e:
             print(f"❌ Error during aggregation phase: {e}", file=sys.stderr)
             sys.exit(1)

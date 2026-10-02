@@ -1,0 +1,87 @@
+================================================================================
+LLM EXTRACTION PROMPT PAYLOAD (FIRST CALL FOR CLASS / DOMAIN)
+Target Class / Container: 05MultimodalDomainAndDevelopmentalHistoryDomainContainer
+Identifier: 05_multimodal_domain_and_developmental_history
+Module File: 05_multimodal_domain_and_developmental_history.py
+Filepath: schemas/summary_master/05_multimodal_domain_and_developmental_history.py
+================================================================================
+
+--------------------------------------------------------------------------------
+1. SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert clinical data extraction assistant.
+
+### Task
+Extract structured data from the provided document excerpt into the required JSON schema.
+
+### Focus Area & Domain Guidance
+**Domain:** Multimodal Domain & Developmental History
+**Target Schemas:** MultimodalDomainAssessment, FineMotorAndMotorSkillAssessment, DevelopmentalHistorySummary, PsychosocialAndFamilyHistory
+**Domain Instructions:** Focus on extracting multimodal functional domain assessment statuses (executive, fine motor, social-emotional, speech), fine motor skill and handwriting assessments (dysgraphia, pencil grasp control), early developmental history summaries (milestone delays in speech, motor, or toileting), and psychosocial/family history context (household structure, family psychiatric conditions, family stressors).
+
+### Constraints & Accuracy Rules
+1. **Strict Context Adherence:** Rely ONLY on clear facts directly mentioned in the text.
+2. **Anti-Hallucination:** If a field is not explicitly mentioned, set its value to `null` (or default).
+3. **Strict Date & Enum Formatting:** Standard ISO format for dates. Exact enum values only.
+
+### Document Excerpt
+
+
+--------------------------------------------------------------------------------
+2. USER INPUT (DOCUMENT CHUNK EXCERPT)
+--------------------------------------------------------------------------------
+Patient Identifier: PT-9042
+Age: 12 years old | Sex: Male
+Date of Evaluation: 2026-03-15
+
+Clinical Evaluation Notes:
+The patient was evaluated for academic difficulties and reported symptoms of inattention in the classroom.
+Diagnostic assessment confirms Attention Deficit Hyperactivity Disorder (ADHD), Combined Type, of moderate severity.
+Secondary assessment noted mild symptoms of generalized anxiety, though Panic Disorder was ruled out.
+
+Key Findings:
+- Reduced executive functioning and processing speed in timed visual tasks.
+- Frequent restlessness and difficulty maintaining sustained focus during reading comprehension.
+
+Recommended Interventions:
+- Individualized Education Program (IEP) with extended time on examinations (1.5x).
+- Cognitive Behavioral Therapy (CBT) focusing on anxiety management and organizational strategies.
+- Preferential seating near the front of the classroom to minimize distractions.
+
+================================================================================
+3. FULL EXACT TEXT CONCATENATED TO LLM
+================================================================================
+You are an expert clinical data extraction assistant.
+
+### Task
+Extract structured data from the provided document excerpt into the required JSON schema.
+
+### Focus Area & Domain Guidance
+**Domain:** Multimodal Domain & Developmental History
+**Target Schemas:** MultimodalDomainAssessment, FineMotorAndMotorSkillAssessment, DevelopmentalHistorySummary, PsychosocialAndFamilyHistory
+**Domain Instructions:** Focus on extracting multimodal functional domain assessment statuses (executive, fine motor, social-emotional, speech), fine motor skill and handwriting assessments (dysgraphia, pencil grasp control), early developmental history summaries (milestone delays in speech, motor, or toileting), and psychosocial/family history context (household structure, family psychiatric conditions, family stressors).
+
+### Constraints & Accuracy Rules
+1. **Strict Context Adherence:** Rely ONLY on clear facts directly mentioned in the text.
+2. **Anti-Hallucination:** If a field is not explicitly mentioned, set its value to `null` (or default).
+3. **Strict Date & Enum Formatting:** Standard ISO format for dates. Exact enum values only.
+
+### Document Excerpt
+
+Patient Identifier: PT-9042
+Age: 12 years old | Sex: Male
+Date of Evaluation: 2026-03-15
+
+Clinical Evaluation Notes:
+The patient was evaluated for academic difficulties and reported symptoms of inattention in the classroom.
+Diagnostic assessment confirms Attention Deficit Hyperactivity Disorder (ADHD), Combined Type, of moderate severity.
+Secondary assessment noted mild symptoms of generalized anxiety, though Panic Disorder was ruled out.
+
+Key Findings:
+- Reduced executive functioning and processing speed in timed visual tasks.
+- Frequent restlessness and difficulty maintaining sustained focus during reading comprehension.
+
+Recommended Interventions:
+- Individualized Education Program (IEP) with extended time on examinations (1.5x).
+- Cognitive Behavioral Therapy (CBT) focusing on anxiety management and organizational strategies.
+- Preferential seating near the front of the classroom to minimize distractions.

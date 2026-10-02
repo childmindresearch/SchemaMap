@@ -1,0 +1,87 @@
+================================================================================
+LLM EXTRACTION PROMPT PAYLOAD (FIRST CALL FOR CLASS / DOMAIN)
+Target Class / Container: 02DiagnosticEvaluationAndPhenotypeSummaryDomainContainer
+Identifier: 02_diagnostic_evaluation_and_phenotype_summary
+Module File: 02_diagnostic_evaluation_and_phenotype_summary.py
+Filepath: schemas/summary_master/02_diagnostic_evaluation_and_phenotype_summary.py
+================================================================================
+
+--------------------------------------------------------------------------------
+1. SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert clinical data extraction assistant.
+
+### Task
+Extract structured data from the provided document excerpt into the required JSON schema.
+
+### Focus Area & Domain Guidance
+**Domain:** Diagnostic Evaluation & Phenotype Summary
+**Target Schemas:** DiagnosticEvaluationSummary, NeurodevelopmentalDiagnosisRecord, DiagnosticCriteriaDetail, ClinicalSymptomProfile
+**Domain Instructions:** Focus on extracting diagnostic evaluation conclusions and clinical phenotype summaries. Extract primary clinical impressions, rule-out considerations, and formal diagnoses (ADHD, ASD, Learning Disorders, Anxiety, Phobias) with ICD/DSM codes, clinical status (confirmed, provisional, rule-out), ADHD presentation subtype, anxiety subtype, phobia subtype, and learning disorder subtype. CRITICAL: Distinguish between CURRENT/ACTIVE vs HISTORICAL/PAST entries using 'temporal_status'. Extract diagnostic criteria fulfillment and symptom profile notes across inattention, hyperactivity, impulsivity, and mood lability.
+
+### Constraints & Accuracy Rules
+1. **Strict Context Adherence:** Rely ONLY on clear facts directly mentioned in the text.
+2. **Anti-Hallucination:** If a field is not explicitly mentioned, set its value to `null` (or default).
+3. **Strict Date & Enum Formatting:** Standard ISO format for dates. Exact enum values only.
+
+### Document Excerpt
+
+
+--------------------------------------------------------------------------------
+2. USER INPUT (DOCUMENT CHUNK EXCERPT)
+--------------------------------------------------------------------------------
+Patient Identifier: PT-9042
+Age: 12 years old | Sex: Male
+Date of Evaluation: 2026-03-15
+
+Clinical Evaluation Notes:
+The patient was evaluated for academic difficulties and reported symptoms of inattention in the classroom.
+Diagnostic assessment confirms Attention Deficit Hyperactivity Disorder (ADHD), Combined Type, of moderate severity.
+Secondary assessment noted mild symptoms of generalized anxiety, though Panic Disorder was ruled out.
+
+Key Findings:
+- Reduced executive functioning and processing speed in timed visual tasks.
+- Frequent restlessness and difficulty maintaining sustained focus during reading comprehension.
+
+Recommended Interventions:
+- Individualized Education Program (IEP) with extended time on examinations (1.5x).
+- Cognitive Behavioral Therapy (CBT) focusing on anxiety management and organizational strategies.
+- Preferential seating near the front of the classroom to minimize distractions.
+
+================================================================================
+3. FULL EXACT TEXT CONCATENATED TO LLM
+================================================================================
+You are an expert clinical data extraction assistant.
+
+### Task
+Extract structured data from the provided document excerpt into the required JSON schema.
+
+### Focus Area & Domain Guidance
+**Domain:** Diagnostic Evaluation & Phenotype Summary
+**Target Schemas:** DiagnosticEvaluationSummary, NeurodevelopmentalDiagnosisRecord, DiagnosticCriteriaDetail, ClinicalSymptomProfile
+**Domain Instructions:** Focus on extracting diagnostic evaluation conclusions and clinical phenotype summaries. Extract primary clinical impressions, rule-out considerations, and formal diagnoses (ADHD, ASD, Learning Disorders, Anxiety, Phobias) with ICD/DSM codes, clinical status (confirmed, provisional, rule-out), ADHD presentation subtype, anxiety subtype, phobia subtype, and learning disorder subtype. CRITICAL: Distinguish between CURRENT/ACTIVE vs HISTORICAL/PAST entries using 'temporal_status'. Extract diagnostic criteria fulfillment and symptom profile notes across inattention, hyperactivity, impulsivity, and mood lability.
+
+### Constraints & Accuracy Rules
+1. **Strict Context Adherence:** Rely ONLY on clear facts directly mentioned in the text.
+2. **Anti-Hallucination:** If a field is not explicitly mentioned, set its value to `null` (or default).
+3. **Strict Date & Enum Formatting:** Standard ISO format for dates. Exact enum values only.
+
+### Document Excerpt
+
+Patient Identifier: PT-9042
+Age: 12 years old | Sex: Male
+Date of Evaluation: 2026-03-15
+
+Clinical Evaluation Notes:
+The patient was evaluated for academic difficulties and reported symptoms of inattention in the classroom.
+Diagnostic assessment confirms Attention Deficit Hyperactivity Disorder (ADHD), Combined Type, of moderate severity.
+Secondary assessment noted mild symptoms of generalized anxiety, though Panic Disorder was ruled out.
+
+Key Findings:
+- Reduced executive functioning and processing speed in timed visual tasks.
+- Frequent restlessness and difficulty maintaining sustained focus during reading comprehension.
+
+Recommended Interventions:
+- Individualized Education Program (IEP) with extended time on examinations (1.5x).
+- Cognitive Behavioral Therapy (CBT) focusing on anxiety management and organizational strategies.
+- Preferential seating near the front of the classroom to minimize distractions.

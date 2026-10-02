@@ -1,0 +1,87 @@
+================================================================================
+LLM EXTRACTION PROMPT PAYLOAD (FIRST CALL FOR CLASS / DOMAIN)
+Target Class / Container: 06InterventionsAccommodationsAndLongitudinalTrackingDomainContainer
+Identifier: 06_interventions_accommodations_and_longitudinal_tracking
+Module File: 06_interventions_accommodations_and_longitudinal_tracking.py
+Filepath: schemas/summary_master/06_interventions_accommodations_and_longitudinal_tracking.py
+================================================================================
+
+--------------------------------------------------------------------------------
+1. SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert clinical data extraction assistant.
+
+### Task
+Extract structured data from the provided document excerpt into the required JSON schema.
+
+### Focus Area & Domain Guidance
+**Domain:** Interventions, Accommodations & Longitudinal Tracking
+**Target Schemas:** ClinicalInterventionStrategy, ReadingInterventionPlan, ClassroomAccommodationPlan, AssistiveTechnologyStrategy, BehavioralSupportPlan, LongitudinalTrackingRequirement
+**Domain Instructions:** Focus on extracting recommended clinical intervention strategies (CBT, ABA, Speech Therapy, OT, Counseling), specialized reading intervention plans (Orton-Gillingham, Wilson, decoding programs), classroom accommodations (extended time, preferential seating), assistive technology tools (speech-to-text, AAC devices), behavioral support plans (BSP techniques, visual schedules, de-escalation), and longitudinal outcome monitoring requirements.
+
+### Constraints & Accuracy Rules
+1. **Strict Context Adherence:** Rely ONLY on clear facts directly mentioned in the text.
+2. **Anti-Hallucination:** If a field is not explicitly mentioned, set its value to `null` (or default).
+3. **Strict Date & Enum Formatting:** Standard ISO format for dates. Exact enum values only.
+
+### Document Excerpt
+
+
+--------------------------------------------------------------------------------
+2. USER INPUT (DOCUMENT CHUNK EXCERPT)
+--------------------------------------------------------------------------------
+Patient Identifier: PT-9042
+Age: 12 years old | Sex: Male
+Date of Evaluation: 2026-03-15
+
+Clinical Evaluation Notes:
+The patient was evaluated for academic difficulties and reported symptoms of inattention in the classroom.
+Diagnostic assessment confirms Attention Deficit Hyperactivity Disorder (ADHD), Combined Type, of moderate severity.
+Secondary assessment noted mild symptoms of generalized anxiety, though Panic Disorder was ruled out.
+
+Key Findings:
+- Reduced executive functioning and processing speed in timed visual tasks.
+- Frequent restlessness and difficulty maintaining sustained focus during reading comprehension.
+
+Recommended Interventions:
+- Individualized Education Program (IEP) with extended time on examinations (1.5x).
+- Cognitive Behavioral Therapy (CBT) focusing on anxiety management and organizational strategies.
+- Preferential seating near the front of the classroom to minimize distractions.
+
+================================================================================
+3. FULL EXACT TEXT CONCATENATED TO LLM
+================================================================================
+You are an expert clinical data extraction assistant.
+
+### Task
+Extract structured data from the provided document excerpt into the required JSON schema.
+
+### Focus Area & Domain Guidance
+**Domain:** Interventions, Accommodations & Longitudinal Tracking
+**Target Schemas:** ClinicalInterventionStrategy, ReadingInterventionPlan, ClassroomAccommodationPlan, AssistiveTechnologyStrategy, BehavioralSupportPlan, LongitudinalTrackingRequirement
+**Domain Instructions:** Focus on extracting recommended clinical intervention strategies (CBT, ABA, Speech Therapy, OT, Counseling), specialized reading intervention plans (Orton-Gillingham, Wilson, decoding programs), classroom accommodations (extended time, preferential seating), assistive technology tools (speech-to-text, AAC devices), behavioral support plans (BSP techniques, visual schedules, de-escalation), and longitudinal outcome monitoring requirements.
+
+### Constraints & Accuracy Rules
+1. **Strict Context Adherence:** Rely ONLY on clear facts directly mentioned in the text.
+2. **Anti-Hallucination:** If a field is not explicitly mentioned, set its value to `null` (or default).
+3. **Strict Date & Enum Formatting:** Standard ISO format for dates. Exact enum values only.
+
+### Document Excerpt
+
+Patient Identifier: PT-9042
+Age: 12 years old | Sex: Male
+Date of Evaluation: 2026-03-15
+
+Clinical Evaluation Notes:
+The patient was evaluated for academic difficulties and reported symptoms of inattention in the classroom.
+Diagnostic assessment confirms Attention Deficit Hyperactivity Disorder (ADHD), Combined Type, of moderate severity.
+Secondary assessment noted mild symptoms of generalized anxiety, though Panic Disorder was ruled out.
+
+Key Findings:
+- Reduced executive functioning and processing speed in timed visual tasks.
+- Frequent restlessness and difficulty maintaining sustained focus during reading comprehension.
+
+Recommended Interventions:
+- Individualized Education Program (IEP) with extended time on examinations (1.5x).
+- Cognitive Behavioral Therapy (CBT) focusing on anxiety management and organizational strategies.
+- Preferential seating near the front of the classroom to minimize distractions.
