@@ -209,12 +209,30 @@ def is_document_processed(doc_id: str, output_dir: str, schemas_meta: list[schem
     doc_out_dir = os.path.join(output_dir, base_name)
     if not os.path.exists(doc_out_dir):
         return False
+
+    completion_file = os.path.join(doc_out_dir, ".completed")
+    if os.path.exists(completion_file):
+        return True
+
     for meta in schemas_meta:
         out_filename = f"{base_name}__{meta.module_name}__{meta.class_name}.json"
         out_filepath = os.path.join(doc_out_dir, out_filename)
-        if not os.path.exists(out_filepath):
-            return False
-    return True
+        if os.path.exists(out_filepath):
+            return True
+
+    # Fallback check for active workflows in progress without .completed file:
+    # If any top-level JSON file exists directly in doc_out_dir, treat document as processed
+    try:
+        top_level_jsons = [
+            f for f in os.listdir(doc_out_dir)
+            if f.endswith(".json") and os.path.isfile(os.path.join(doc_out_dir, f))
+        ]
+        if top_level_jsons:
+            return True
+    except Exception:
+        pass
+
+    return False
 
 
 async def process_document(
@@ -392,7 +410,11 @@ async def process_document(
             chunk_outputs = schema_chunk_outputs[meta.qualified_name]
             try:
                 if not chunk_outputs:
-                    logger.warning(f"  [CONSOLIDATION SKIPPED] No outputs for '{meta.qualified_name}' in Doc '{doc_id}'.")
+                    logger.info(f"  [CONSOLIDATION EMPTY] No outputs for '{meta.qualified_name}' in Doc '{doc_id}'. Saving empty schema output.")
+                    out_filename = f"{base_name}__{meta.module_name}__{meta.class_name}.json"
+                    out_filepath = os.path.join(doc_out_dir, out_filename)
+                    with open(out_filepath, "w", encoding="utf-8") as out_f:
+                        json.dump([], out_f, indent=4)
                     continue
 
                 if len(chunk_outputs) == 1 and isinstance(chunk_outputs[0], list):
@@ -408,6 +430,11 @@ async def process_document(
                     flattened_outputs = chunk_outputs
 
                 if not flattened_outputs:
+                    logger.info(f"  [CONSOLIDATION EMPTY] No outputs for '{meta.qualified_name}' in Doc '{doc_id}'. Saving empty schema output.")
+                    out_filename = f"{base_name}__{meta.module_name}__{meta.class_name}.json"
+                    out_filepath = os.path.join(doc_out_dir, out_filename)
+                    with open(out_filepath, "w", encoding="utf-8") as out_f:
+                        json.dump([], out_f, indent=4)
                     continue
 
                 if len(flattened_outputs) == 1:
@@ -427,6 +454,18 @@ async def process_document(
                 logger.info(f"  [CONSOLIDATION SUCCESS] Doc: '{doc_id}' | Schema: '{meta.qualified_name}' -> {out_filepath}")
             except Exception as e:
                 logger.error(f"  [CONSOLIDATION FAILED] Doc: '{doc_id}' | Schema: '{meta.qualified_name}' | Error: {e}")
+
+        # Mark document as fully completed
+        completion_file = os.path.join(doc_out_dir, ".completed")
+        try:
+            with open(completion_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "doc_id": doc_id,
+                    "completed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "total_schemas": len(schemas_meta)
+                }, f, indent=4)
+        except Exception as e:
+            logger.warning(f"Could not save completion marker for Doc '{doc_id}': {e}")
 
     except Exception as e:
         logger.error(f"Error processing Doc '{doc_id}': {e}")

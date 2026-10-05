@@ -66,6 +66,38 @@ def main():
         help="Directory to save aggregated CSV and SQLite tables (overrides config.yaml)."
     )
     parser.add_argument(
+        "--resume",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Resume workflow and skip previously processed documents (overrides config.yaml)."
+    )
+    parser.add_argument(
+        "--extract-mode",
+        type=str,
+        choices=["domain_grouped", "top_level", "all", "child"],
+        default=None,
+        help="DAG extraction mode (overrides config.yaml)."
+    )
+    parser.add_argument(
+        "--input-dir",
+        type=str,
+        default=None,
+        help="Directory containing input documents (overrides config.yaml)."
+    )
+    parser.add_argument(
+        "--input-format",
+        type=str,
+        choices=["txt", "parquet"],
+        default=None,
+        help="Format of input documents (overrides config.yaml)."
+    )
+    parser.add_argument(
+        "--file",
+        type=str,
+        default=None,
+        help="Process a specific input file only."
+    )
+    parser.add_argument(
         "--skip-extraction",
         action="store_true",
         help="Skip extraction phase and run only data aggregation."
@@ -92,6 +124,8 @@ def main():
         print(f"Prompt Payloads Directory: {args.prompt_payloads_dir}")
     if args.agg_dir:
         print(f"Aggregation Directory: {args.agg_dir}")
+    if args.resume is not None:
+        print(f"Resume Mode Override: {args.resume}")
     print("=====================================================================\n")
 
     # Step 1: Structured Extraction Phase
@@ -106,7 +140,12 @@ def main():
                     schema_path=args.schema_path,
                     domain_mapping_file=args.domain_mapping_file,
                     output_dir=args.output_dir,
-                    prompt_payloads_dir=args.prompt_payloads_dir
+                    prompt_payloads_dir=args.prompt_payloads_dir,
+                    extract_mode=args.extract_mode,
+                    input_dir=args.input_dir,
+                    input_format=args.input_format,
+                    file_override=args.file,
+                    resume=args.resume
                 )
             )
         except Exception as e:
