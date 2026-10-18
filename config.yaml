@@ -8,30 +8,22 @@
 # ---------------------------------------------------------------------
 input:
   # Directory path or file path (.txt / .parquet / .pq) to scan
-  path: "inputs"
+  path: "inputs/sample_documents.parquet"
   # Format of input data: "txt" or "parquet"
-  format: "txt"
+  format: "parquet"
   # Column in Parquet containing document/record identifier (if format is parquet)
-  id_column: "identifier"
+  id_column: "id"
   # Column in Parquet containing raw document text (if format is parquet)
-  text_column: "anonymized"
+  text_column: "text"
 
 # ---------------------------------------------------------------------
 # Extraction Schema Settings
 # ---------------------------------------------------------------------
 schema:
   # Path to single Python schema file (.py) OR multi-file schema directory
-  file: "schemas/core_master"
-  # Optional path to domain mapping metadata file (.py) containing DOMAIN_EXTRACTION_MAP
-  domain_mapping_file: "schemas/core_domain_mapping.py"
-  # Name of a specific schema class within schema file (null for all / auto-detect)
+  path: "schemas/test_schemas"
+  # Target specific schema class name (null to auto-extract all top-level root schemas)
   class_name: null
-  # Dynamic extraction mode for multi-file directories: "domain_grouped" | "top_level" | "all" | "child"
-  # - "domain_grouped": Synthesizes domain container models (List[Model]) per file (optimal efficiency & zero info loss)
-  # - "top_level": Uses DAG reflection to extract root container models
-  # - "all": Extracts all discovered Pydantic schemas individually
-  # - "child": Extracts only embedded child component models
-  extract_mode: "domain_grouped"
 
 
 
@@ -40,7 +32,7 @@ schema:
 # ---------------------------------------------------------------------
 model:
   # Ollama model identifier
-  name: "qwen2.5:7b"
+  name: "qwen2.5:14b"
   # Ollama API base URL
   url: "http://localhost:11434/v1"
   # Maximum concurrent asynchronous LLM requests
@@ -51,20 +43,23 @@ model:
 # ---------------------------------------------------------------------
 chunking:
   # Target word count per chunk (Recommended: 600-1000 for optimal prompt prefill & generation speed)
-  size: 800
+  size: 300
   # Number of overlapping words between consecutive chunks
-  overlap: 30
-
+  overlap: 20
 # ---------------------------------------------------------------------
 # Execution & Output Settings
 # ---------------------------------------------------------------------
 execution:
   # Output directory for extracted JSON files
-  output_dir: "outputs"
+  output_dir: "outputs/extracts"
   # Directory to save the first LLM prompt payload per schema class for manual human review
-  prompt_payloads_dir: "prompt_payloads"
+  prompt_payloads_dir: "outputs/prompt_payloads"
   # Skip records that already have complete final output JSON files
   resume: true
+  # Fast schema triage pass: skips irrelevant schemas per chunk to speed up extraction by 8x-10x
+  enable_triage: true
+  # Minimum number of schemas before triage is activated
+  triage_threshold: 3
   # Run synchronously instead of asynchronously
   sync_mode: false
   # Execution log file path
@@ -72,13 +67,13 @@ execution:
 
 
 # ---------------------------------------------------------------------
-# Data Aggregation Settings (used by aggregate_outputs.py)
+# Data Aggregation Settings
 # ---------------------------------------------------------------------
 aggregation:
   # Directory containing extracted JSON outputs to aggregate (defaults to execution.output_dir if null)
   input_dir: null
   # Directory where aggregated tables (CSV / SQLite) will be saved
-  output_dir: "aggregated_tables"
+  output_dir: "outputs/aggregated_tables"
   # SQLite database filename
   db_file: "aggregated_data.db"
   # Enable CSV table generation
@@ -87,3 +82,14 @@ aggregation:
   sqlite: true
   # Store in normalized multi-table relational format (true) or single denormalized table (false)
   multi_table: true
+  # Discard records where all extracted data fields are null or empty
+  drop_empty_records: true
+  # Skip creating CSV and SQLite tables for schemas with 0 non-empty rows
+  drop_empty_tables: true
+  # Generate an additional consolidated wide table (1 row per document, all schema fields as columns)
+  consolidated_wide_table: true
+  # Table and file name for the consolidated wide table
+  wide_table_name: "consolidated_wide"
+  # Include raw document text as 'source_text' column in the consolidated wide table
+  include_source_text: true
+

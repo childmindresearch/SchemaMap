@@ -1,23 +1,22 @@
 """
-Schema Loader & Processing Engine
+Dynamic Schema Loader & Processing Engine
 
-Provides Pydantic schema loading, cross-file namespace isolation, AST/DAG
-field-reflection classification (top-level vs child models), text chunking,
-and field-level Pydantic model instance consolidation.
+Provides Pydantic schema loading, cross-file namespace isolation,
+AST/DAG field-reflection classification (top-level vs child models),
+and automated plain-English field instruction generation for LLMs.
 """
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 import importlib.util
 import inspect
-import json
 import os
+from pathlib import Path
 import sys
 import typing
-from dataclasses import dataclass
-from datetime import date, datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Type
 from pydantic import BaseModel
-
 
 
 @dataclass
@@ -32,53 +31,16 @@ class SchemaMeta:
     filepath: str
 
 
-class SafeJSONEncoder(json.JSONEncoder):
-    """
-    Custom JSON encoder to safely serialize dates, datetimes, enums,
-    and Pydantic BaseModel instances.
-    """
-    def default(self, obj):
-        if isinstance(obj, (date, datetime)):
-            return obj.isoformat()
-        if isinstance(obj, Enum):
-            return obj.value
-        if isinstance(obj, BaseModel):
-            return obj.model_dump(mode="json")
-        try:
-            return super().default(obj)
-        except TypeError:
-            return str(obj)
-
-
-def chunk_text(text: str, chunk_size: int, chunk_overlap: int = 0) -> List[str]:
-    """Chunks a text string into word-based segments of dynamic length with overlap."""
-    if chunk_size <= 0:
-        return [text]
-        
-    words = text.split()
-    if len(words) <= chunk_size:
-        return [text]
-        
-    chunks = []
-    step = chunk_size - chunk_overlap
-    if step <= 0:
-        step = chunk_size
-        
-    for i in range(0, len(words), step):
-        chunk = " ".join(words[i:i + chunk_size])
-        chunks.append(chunk)
-        if i + chunk_size >= len(words):
-            break
-            
-    return chunks
+# Re-export prompt instruction formatter from centralized prompts module for backward compatibility
+from .prompts import format_schema_field_instructions
 
 
 def extract_referenced_models(annotation: Any) -> Set[Type[BaseModel]]:
     """
-    Recursively inspects a type annotation (unwrap Optional, List, Union, Dict, etc.)
+    Recursively inspects a type annotation (unwrapping Optional, List, Union, Dict, etc.)
     and returns all referenced Pydantic BaseModel subclasses.
     """
-    referenced = set()
+    referenced: Set[Type[BaseModel]] = set()
 
     if annotation is None:
         return referenced
@@ -89,9 +51,7 @@ def extract_referenced_models(annotation: Any) -> Set[Type[BaseModel]]:
         return referenced
 
     # Handle Generic Alias types (List[T], Optional[T], Union[T1, T2], Dict[K, V], etc.)
-    origin = typing.get_origin(annotation)
     args = typing.get_args(annotation)
-
     if args:
         for arg in args:
             referenced.update(extract_referenced_models(arg))
@@ -126,14 +86,14 @@ def load_schemas(schema_dir_or_file: str) -> List[SchemaMeta]:
     top-level root models vs child embedded models.
     """
     py_files = resolve_schema_files(schema_dir_or_file)
-    
+
     # Pass 1: Import modules and collect classes
     module_classes: Dict[str, List[Tuple[str, Type[BaseModel], str]]] = {}
     all_loaded_classes: Set[Type[BaseModel]] = set()
 
     for filepath in py_files:
-        module_name = os.path.splitext(os.path.basename(filepath))[0]
-        
+        module_name = Path(filepath).stem
+
         spec = importlib.util.spec_from_file_location(module_name, filepath)
         if spec is None or spec.loader is None:
             continue
@@ -212,62 +172,6 @@ def get_child_schemas(schema_meta_list: List[SchemaMeta]) -> List[SchemaMeta]:
     return [meta for meta in schema_meta_list if meta.is_child]
 
 
-def merge_pydantic_instances(schema_cls: Type[BaseModel], instances: List[BaseModel]) -> BaseModel:
-    """
-    Consolidates Pydantic model instances across chunks while preserving EXACT raw extracted values.
-    - Zero mathematical alteration or averaging.
-    - Zero text mutation, lowercasing, or artificial string concatenation.
-    - List items deduplicated based on exact raw JSON equality.
-    """
-    if not instances:
-        raise ValueError("No instances to merge.")
-    if len(instances) == 1:
-        return instances[0]
-        
-    merged_data = {}
-    for field_name, field_info in schema_cls.model_fields.items():
-        values = [getattr(inst, field_name) for inst in instances if getattr(inst, field_name) is not None]
-        if not values:
-            merged_data[field_name] = None
-            continue
-            
-        first_val = values[0]
-        
-        if isinstance(first_val, list):
-            merged_list = []
-            seen = set()
-            for val in values:
-                for item in val:
-                    if isinstance(item, BaseModel):
-                        item_repr = json.dumps(item.model_dump(mode="json"), cls=SafeJSONEncoder, sort_keys=True)
-                    elif isinstance(item, dict):
-                        item_repr = json.dumps(item, cls=SafeJSONEncoder, sort_keys=True)
-                    else:
-                        item_repr = str(item)
-                        
-                    if item_repr not in seen:
-                        merged_list.append(item)
-                        seen.add(item_repr)
-            merged_data[field_name] = merged_list
-            
-        elif isinstance(first_val, dict):
-            merged_dict = {}
-            for val in values:
-                merged_dict.update(val)
-            merged_data[field_name] = merged_dict
-
-        elif isinstance(first_val, BaseModel):
-            sub_instances = [v for v in values if isinstance(v, BaseModel)]
-            merged_data[field_name] = merge_pydantic_instances(type(first_val), sub_instances)
-
-        else:
-            # Preserve exact raw extracted value from primary mention without alteration
-            merged_data[field_name] = first_val
-                
-    return schema_cls(**merged_data)
-
-
-
 def load_domain_mapping(mapping_filepath: str) -> Dict[str, Dict[str, Any]]:
     """
     Dynamically loads a domain mapping dictionary (e.g. DOMAIN_EXTRACTION_MAP)
@@ -276,7 +180,7 @@ def load_domain_mapping(mapping_filepath: str) -> Dict[str, Dict[str, Any]]:
     if not mapping_filepath or not os.path.exists(mapping_filepath):
         return {}
 
-    module_name = os.path.splitext(os.path.basename(mapping_filepath))[0]
+    module_name = Path(mapping_filepath).stem
     spec = importlib.util.spec_from_file_location(module_name, mapping_filepath)
     if spec is None or spec.loader is None:
         return {}
@@ -303,7 +207,6 @@ def get_domain_info_for_schema(
     if not meta or not domain_mapping:
         return None
 
-
     filename = os.path.basename(meta.filepath)
     py_module_key = f"{meta.module_name}.py"
 
@@ -323,58 +226,3 @@ def get_domain_info_for_schema(
                 return info
 
     return None
-
-
-@dataclass
-class DomainContainerMeta:
-    """Metadata container for a dynamically synthesized domain extraction container model."""
-    module_name: str
-    container_cls: Type[BaseModel]
-    member_schemas: List[SchemaMeta]
-    filepath: str
-
-
-def build_domain_containers(schema_meta_list: List[SchemaMeta]) -> List[DomainContainerMeta]:
-    """
-    Groups schemas by module (file) and dynamically synthesizes a Pydantic
-    domain container model holding List[Model] fields for each class in the file.
-    Enables zero-loss multi-class extraction in a single LLM pass per domain.
-    """
-    from pydantic import create_model, Field
-
-    modules_map: Dict[str, List[SchemaMeta]] = {}
-    for meta in schema_meta_list:
-        modules_map.setdefault(meta.module_name, []).append(meta)
-
-    domain_containers: List[DomainContainerMeta] = []
-
-    for module_name, metas in modules_map.items():
-        fields = {}
-        for meta in metas:
-            field_name = f"{meta.class_name.lower()}_list"
-            fields[field_name] = (
-                typing.Optional[List[meta.schema_cls]],
-                Field(
-                    default=None,
-                    description=f"Optional list of extracted {meta.class_name} entity records. Leave null or empty [] if not explicitly mentioned."
-                )
-            )
-
-        container_class_name = "".join(part.capitalize() for part in module_name.split("_")) + "DomainContainer"
-        container_cls = create_model(
-            container_class_name,
-            **fields
-        )
-
-
-        filepath = metas[0].filepath if metas else ""
-        domain_containers.append(DomainContainerMeta(
-            module_name=module_name,
-            container_cls=container_cls,
-            member_schemas=metas,
-            filepath=filepath
-        ))
-
-    return domain_containers
-
-

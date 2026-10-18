@@ -1,15 +1,52 @@
+# =====================================================================
+# SchemaMap - Production .gitignore
+# =====================================================================
+
 # Python Virtual Environments
+.venv/
 venv/
 env/
-.venv/
 ENV/
+env.bak/
+venv.bak/
 
-# Python Cache & Bytecode
+# Python Bytecode & Cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.Python
+
+# Testing & Coverage
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+.tox/
+.nox/
+
+# Type Checking & Linters
+.mypy_cache/
+.ruff_cache/
+
+# Distribution & Packaging
+build/
+dist/
+*.egg-info/
+*.egg
+develop-eggs/
+eggs/
+parts/
+bin/
+var/
+sdist/
+wheels/
+
+# SQLite Temporary Files & Write-Ahead Logs
+*.db-journal
+*.db-wal
+*.db-shm
 
 # Generated Pipeline Outputs & Log Files
 outputs/
@@ -21,12 +58,19 @@ aggregated_tables*/
 *.log
 nohup.out
 
-
 # Jupyter & Editor Checkpoints
 .ipynb_checkpoints/
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS System Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db

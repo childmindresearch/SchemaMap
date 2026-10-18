@@ -1,0 +1,14 @@
+ADULT DIAGNOSTIC INTAKE AND CLINICAL PROGRESSION SUMMARY
+Date: May 18, 2026
+Patient: PT-5294 | Demographics: 28-year-old female, Software Quality Engineer
+
+Clinical Evaluation & Narrative Overview:
+PT-5294 self-referred to the behavioral health clinic seeking evaluation for pervasive burnout, attentional lapses at work, and cyclical low mood. She reports a lifelong history of struggling with project completion, procrastination, and time blindness, which has become acutely unmanageable following a recent promotion involving independent workload management. She articulated feeling overwhelmed by open-ended deliverables, leading to profound self-criticism, late-night hyperfocus sessions, and subsequent daytime cognitive fatigue.
+
+Diagnostic Findings:
+Comprehensive clinical assessment, including the Adult ADHD Self-Report Scale (ASRS-v1.1) and structured clinical interview, reveals substantial retrospective childhood impairment and pervasive adult executive dysfunction. Formal diagnostic evaluation confirms Attention-Deficit/Hyperactivity Disorder, Predominantly Inattentive Presentation, of moderate severity. Secondary assessment reveals mild recurrent dysthymic mood attributable to chronic occupational frustration. Bipolar spectrum and primary psychotic disorders were ruled out.
+
+Recommendations & Interventions:
+1. Executive Function Coaching: Recommended specialized ADHD coaching focusing on task-decomposition strategies and externalizing working memory tools.
+2. Pharmacological Consultation: Planned evaluation for central nervous system stimulant therapy (lisdexamfetamine) versus non-stimulant alternatives.
+3. Workplace Accommodations: Advised requesting written follow-ups after team meetings and quiet work zones during high-focus tasks. Follow-up appointment scheduled in 4 weeks.

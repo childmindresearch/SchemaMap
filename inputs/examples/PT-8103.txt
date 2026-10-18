@@ -1,0 +1,15 @@
+ADOLESCENT CLINICAL INTAKE AND PSYCHOSOCIAL EVALUATION NARRATIVE
+Date: April 02, 2026
+Patient Identifier: PT-8103 | Demographics: 16-year-old female, 10th grade
+
+Clinical Narrative & Intake Summary:
+The patient presented for comprehensive psychiatric intake at the urging of her pediatrician and school social worker due to progressive social withdrawal, chronic insomnia, and persistent feelings of apprehension over the past four months. In our diagnostic interview, she articulated a recurring pattern of severe anxiety regarding social evaluation and academic performance, frequently experiencing autonomic arousal, palpitations, and gastrointestinal distress prior to oral presentations or entering group dining areas. Her sleep architecture has deteriorated, averaging four to five hours of fragmented sleep per night accompanied by ruminative worries about collegiate admissions and peer interactions.
+
+Clinical Formulation & Diagnostic Impressions:
+Formal diagnostic evaluation and review of validated symptom inventories (GAD-7 score: 16; PHQ-9 score: 8) confirm a primary diagnosis of Generalized Anxiety Disorder with prominent social anxiety features of moderate-to-severe intensity. Subthreshold depressive symptoms are noted secondary to emotional exhaustion from chronic worry, though criteria for major depressive episode are not met. The patient denies active or passive suicidal ideation, and risk assessment indicates low safety concern with robust protective factors.
+
+Therapeutic Treatment Plan:
+We formulated a stepped-care outpatient regimen:
+1. Evidence-Based Psychotherapy: Recommended 16-session manualized Cognitive Behavioral Therapy (CBT) incorporating exposure and response prevention (ERP) hierarchies and cognitive restructuring for catastrophic thoughts.
+2. Pharmacotherapy: Initiated trial of sertraline at 25 mg daily for one week, with planned titration to 50 mg daily, monitored for tolerability.
+3. Lifestyle & Sleep Hygiene: Implementation of a structured wind-down routine without screen exposure 60 minutes before bedtime. Scheduled for clinical follow-up in two weeks.
