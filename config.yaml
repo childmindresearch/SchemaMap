@@ -60,6 +60,10 @@ execution:
   enable_triage: true
   # Minimum number of schemas before triage is activated
   triage_threshold: 3
+  # Behavior when triage explicitly determines zero schemas match a chunk:
+  # - false (Recommended): Trusts the triage result and skips extraction for this chunk entirely (avoids slow redundant calls on irrelevant text).
+  # - true: Safety fallback that forces extraction of all candidate schemas when triage returns no matches.
+  fallback_on_empty_triage: false
   # Run synchronously instead of asynchronously
   sync_mode: false
   # Execution log file path

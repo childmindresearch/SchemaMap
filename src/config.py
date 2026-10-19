@@ -107,6 +107,10 @@ class ExecutionConfig(BaseModel):
     resume: bool = Field(default=True, description="Skip already completed document schemas")
     enable_triage: bool = Field(default=True, description="Filter schemas per chunk via fast triage pass to skip unmentioned entities")
     triage_threshold: int = Field(default=3, ge=1, description="Minimum candidate schemas before triage filtering activates")
+    fallback_on_empty_triage: bool = Field(
+        default=False,
+        description="If True, extracts all candidate schemas when triage identifies zero matches. If False, trusts triage decision and skips extraction for that chunk."
+    )
     sync_mode: bool = Field(default=False, description="Run synchronously instead of asynchronously")
     log_file: str = Field(default="extraction_workflow.log", description="Log file path")
 

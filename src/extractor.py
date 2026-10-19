@@ -269,12 +269,18 @@ class ExtractionEngine:
                     if name.lower() in schema_map
                 ]
 
-                # Safety fallback: if triage matched none, extract all candidates
+                # If triage matched none, check whether fallback is enabled or skip chunk
                 if not selected:
-                    self.logger.info(
-                        f"  [TRIAGE EMPTY] No candidate matched explicitly ({elapsed:.2f}s). Falling back to all {len(candidate_schemas)} schemas."
-                    )
-                    return candidate_schemas
+                    if getattr(self.config.execution, "fallback_on_empty_triage", False):
+                        self.logger.info(
+                            f"  [TRIAGE EMPTY FALLBACK] No candidate matched explicitly ({elapsed:.2f}s). Configured fallback: extracting all {len(candidate_schemas)} schemas."
+                        )
+                        return candidate_schemas
+                    else:
+                        self.logger.info(
+                            f"  [TRIAGE SKIP] No schemas matched chunk ({elapsed:.2f}s). Skipping all {len(candidate_schemas)} candidate schemas for this chunk."
+                        )
+                        return []
 
                 skipped_count = len(candidate_schemas) - len(selected)
                 self.logger.info(
